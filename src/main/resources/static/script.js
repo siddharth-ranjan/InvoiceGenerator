@@ -2,20 +2,33 @@ function addItem() {
     const invoiceDetails = document.getElementById("invoiceDetails");
 
     const itemDiv = document.createElement("div");
+    itemDiv.classList.add("item-row");  // Add class for styling/removal
 
+    // Inner HTML for a new item row
     itemDiv.innerHTML = `
         <label>Item</label>
-        <input type="text" name="item" placeholder="Item">
+        <input type="text" name="item[]" placeholder="Item">
+        
         <label>Quantity</label>
-        <input type="number" name="quantity" placeholder="Quantity" min="1">
+        <input type="number" name="quantity[]" placeholder="Quantity" min="1">
+        
         <label>Unit Price</label>
-        <input type="number" name="unitPrice" placeholder="Unit Price" min="0.01" step="0.01" inputmode="decimal">
+        <input type="number" name="unitPrice[]" placeholder="Unit Price" min="0.01" step="0.01" inputmode="decimal">
+        
         <label>Discount</label>
-        <input type="number" name="discount" placeholder="Discount" min="0.01" step="0.01" inputmode="decimal" max="100">
+        <input type="number" name="discount[]" placeholder="Discount" min="0" step="0.01" inputmode="decimal" max="100">
+        
+        <button type="button" class="removeItemBtn">Remove</button>
         <br>
     `;
 
-    invoiceDetails.appendChild(itemDiv);  // Append the new div to the container
+    // Append the new item row to the container
+    invoiceDetails.appendChild(itemDiv);
+
+    // Add event listener for remove button
+    itemDiv.querySelector(".removeItemBtn").addEventListener("click", function() {
+        invoiceDetails.removeChild(itemDiv);  // Remove the specific item row
+    });
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -28,32 +41,29 @@ document.addEventListener("DOMContentLoaded", function () {
         const username = document.getElementById("name").value;
         const email = document.getElementById("email").value;
 
-        // Get the dynamically added items
-        const itemElements = document.querySelectorAll("#invoiceDetails > input");
-
-        console.log("itemElements->", itemElements);  // Logs the NodeList of item divs
-
+        // Get all the dynamically added items and their details
         const items = [];
-        itemElements.forEach(input => {
-            // Check the name of the input element to handle the specific data
-            if (input.name === 'item') {
-                const item = input.value;
-                const quantity = parseInt(document.querySelector("input[name='quantity']").value);
-                const unitPrice = parseFloat(document.querySelector("input[name='unitPrice']").value);
-                let discount = parseFloat(document.querySelector("input[name='discount']").value);
+        const itemRows = document.querySelectorAll("#invoiceDetails .item-row");
 
-                if (isNaN(discount) || discount < 0) {
-                    discount = 0; // Default discount to 0 if invalid or empty
-                }
+        itemRows.forEach(row => {
+            const item = row.querySelector("input[name='item[]']").value;
+            const quantity = parseInt(row.querySelector("input[name='quantity[]']").value);
+            const unitPrice = parseFloat(row.querySelector("input[name='unitPrice[]']").value);
+            let discount = parseFloat(row.querySelector("input[name='discount[]']").value);
 
-                // Push each item with its details
-                items.push({ item, quantity, unitPrice, discount });
+            // Default to 0 discount if invalid
+            if (isNaN(discount) || discount < 0) {
+                discount = 0;
             }
+
+            // Push the item object to the items array
+            items.push({ item, quantity, unitPrice, discount });
         });
 
-        console.log("Username:", username);  // Check username
-        console.log("Email:", email);  // Check email
-        console.log("Items:", items);  // Check items array
+        // Log the gathered form data
+        console.log("Username:", username);
+        console.log("Email:", email);
+        console.log("Items:", items);
 
         const payload = {
             username,
