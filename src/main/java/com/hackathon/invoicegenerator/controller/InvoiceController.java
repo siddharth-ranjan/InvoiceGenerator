@@ -20,23 +20,35 @@ public class InvoiceController {
         this.invoiceService = invoiceService;
     }
 
+//    @PostMapping("/invoice")
+//    public ResponseEntity<String> createInvoice(@RequestBody InvoiceRequest request) {
+//        System.out.println("User: " + request.getUsername());
+//        System.out.println("Email: " + request.getEmail());
+//
+//        request.getItems().forEach(item -> {
+//            System.out.println(item.getItem() + " - " + item.getQuantity() + " units at " + item.getUnitPrice() + ", discount: " + item.getDiscount());
+//        });
+//
+//        // TODO: Persist to DB, generate PDF, send email
+//
+//        Invoice savedInvoice = invoiceService.saveInvoice(request);
+//
+//        // Optional: trigger PDF + email here
+//
+////        return ResponseEntity.ok("Success");
+//        return ResponseEntity.ok("Invoice #" + savedInvoice.getInvoiceId() + " created successfully.");
+//    }
+
     @PostMapping("/invoice")
-    public ResponseEntity<String> createInvoice(@RequestBody InvoiceRequest request) {
-        System.out.println("User: " + request.getUsername());
-        System.out.println("Email: " + request.getEmail());
-
-        request.getItems().forEach(item -> {
-            System.out.println(item.getItem() + " - " + item.getQuantity() + " units at " + item.getUnitPrice() + ", discount: " + item.getDiscount());
-        });
-
-        // TODO: Persist to DB, generate PDF, send email
-
-        Invoice savedInvoice = invoiceService.saveInvoice(request);
-
-        // Optional: trigger PDF + email here
-
-//        return ResponseEntity.ok("Success");
-        return ResponseEntity.ok("Invoice #" + savedInvoice.getInvoiceId() + " created successfully.");
+    public ResponseEntity<Invoice> createInvoice(@RequestBody InvoiceRequest request) {
+        System.out.println(request);
+        try {
+            Invoice invoice = invoiceService.createInvoiceWithPdfAndEmail(request);
+            return ResponseEntity.ok(invoice);
+        } catch (Exception e) {
+            System.out.println("Failed to send email" + e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/get/{invoiceId}")
