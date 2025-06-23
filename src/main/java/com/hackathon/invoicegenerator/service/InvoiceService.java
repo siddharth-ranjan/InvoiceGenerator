@@ -5,9 +5,11 @@ import com.hackathon.invoicegenerator.entity.InvoiceItem;
 import com.hackathon.invoicegenerator.model.InvoiceItemDTO;
 import com.hackathon.invoicegenerator.model.InvoiceRequest;
 import com.hackathon.invoicegenerator.repository.InvoiceRepository;
+import com.hackathon.invoicegenerator.util.PdfGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,10 +18,17 @@ import java.util.stream.Collectors;
 public class InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
+    private final EmailService emailService;
+    private final PdfGenerator pdfGenerator;
 
     @Autowired
-    public InvoiceService(InvoiceRepository invoiceRepository) {
+    public InvoiceService(
+            InvoiceRepository invoiceRepository,
+            EmailService emailService,
+            PdfGenerator pdfGenerator) {
         this.invoiceRepository = invoiceRepository;
+        this.emailService = emailService;
+        this.pdfGenerator = pdfGenerator;
     }
 
     public Invoice saveInvoice(InvoiceRequest request) {
@@ -44,5 +53,12 @@ public class InvoiceService {
 
     public Optional<Invoice> getInvoiceById(Long invoiceId) {
         return invoiceRepository.findById(invoiceId);
+    }
+
+    public Invoice createInvoiceWithPdfAndEmail(InvoiceRequest request) throws Exception {
+        Invoice savedInvoice = saveInvoice(request);
+        File pdfFile = pdfGenerator.generateInvoicePdf(savedInvoice);
+        emailService.sendInvoiceEmail(savedInvoice.getEmail(), new File(pdfFile.getAbsolutePath()));
+        return savedInvoice;
     }
 }
